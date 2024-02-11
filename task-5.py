@@ -85,23 +85,32 @@ def bfs(tree, node, visited=None, queue=None):
             bfs(tree, queue[0], visited, queue)
 
 
-def dfs(tree, node, visited=None, color_value=0):
+def dfs(tree, node, visited=None, colormap=None):
     if visited is None:
         visited = set()
+    if colormap is None:
+        colormap = {}
 
     if node.id not in visited:
         visited.add(node.id)
-        color_value += 1
-        tree.nodes[node.id]["color"] = colormap(color_value / len(tree.nodes))
+        if node.id not in colormap:
+            colormap[node.id] = generate_color(len(colormap), len(tree.nodes))
+
+        tree.nodes[node.id]["color"] = colormap[node.id]
 
         if node.left:
-            dfs(tree, node.left, visited, color_value)
+            dfs(tree, node.left, visited, colormap)
         if node.right:
-            dfs(tree, node.right, visited, color_value)
+            dfs(tree, node.right, visited, colormap)
+
+
+def generate_color(index, total_nodes):
+    cmap = plt.get_cmap("plasma")
+    return cmap(index / total_nodes)
 
 
 if __name__ == "__main__":
-    colormap = plt.get_cmap("magma")
+    colormap = plt.get_cmap("plasma")
     # Створення дерева
     root = Node(0)
     root.left = Node(4)
