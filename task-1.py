@@ -121,6 +121,30 @@ class LinkedList:
             current_node = next_node
         self.head = prev_node
 
+    def sort(self):  # insertion sort method
+        if self.head is None or self.head.next is None:
+            return
+
+        sorted_tail = self.head
+        while sorted_tail.next:
+            current = sorted_tail.next
+            if current.data < self.head.data:
+                # Move node to the beginning
+                sorted_tail.next = current.next
+                current.next = self.head
+                self.head = current
+            else:
+                # Search for the correct spot in the sorted part
+                search = self.head
+                while search.next is not current and current.data > search.next.data:
+                    search = search.next
+                if search.next is not current:
+                    sorted_tail.next = current.next
+                    current.next = search.next
+                    search.next = current
+                else:
+                    sorted_tail = sorted_tail.next
+
     def __str__(self):
         result = ""
         current_node = self.head
@@ -132,7 +156,34 @@ class LinkedList:
         return result
 
 
+def merge_lists(linked_list1, linked_list2):
+    merged_list = LinkedList()
+
+    current1 = linked_list1.head
+    current2 = linked_list2.head
+
+    while current1 and current2:
+        if current1.data < current2.data:
+            merged_list.add_last(current1.data)
+            current1 = current1.next
+        else:
+            merged_list.add_last(current2.data)
+            current2 = current2.next
+
+    while current1:
+        merged_list.add_last(current1.data)
+        current1 = current1.next
+
+    while current2:
+        merged_list.add_last(current2.data)
+        current2 = current2.next
+
+    merged_list.sort()
+    return merged_list
+
+
 if __name__ == "__main__":
+    # Test reverse_list method
     list_1 = LinkedList()
 
     list_1.add_first(5)
@@ -142,3 +193,19 @@ if __name__ == "__main__":
     list_1.reverse_list()
     print("Display list", list_1)
     print("List length", list_1.get_length())
+
+    # Test sort method
+    list_1.add_first(18)
+    list_1.add_first(15)
+    list_1.add_first(12)
+    list_1.sort()
+    print("Display list", list_1)
+
+    # Test merge_lists function
+    list_2 = LinkedList()
+    list_1.add_first(105)
+    list_1.add_first(79)
+    list_1.add_last(202)
+
+    merged_list = merge_lists(list_1, list_2)
+    print("Merged list: ", merged_list)
