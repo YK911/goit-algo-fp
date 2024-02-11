@@ -19,15 +19,26 @@ def draw_pifagor_tree(branch_len, level):
     turtle.backward(branch_len)
 
 
-def main():
+def main(user_input):
     turtle.speed(0)
     turtle.bgcolor("white")
     turtle.color("blue")
     turtle.left(90)
-    draw_pifagor_tree(branch_len=80, level=8)  # set branch length and recursion level
+    draw_pifagor_tree(
+        branch_len=80, level=user_input
+    )  # set branch length and recursion level
     turtle.hideturtle()
     turtle.done()
 
 
 if __name__ == "__main__":
-    main()
+    while True:
+        try:
+            user_input = int(input("Enter an integer from 1 to 7: "))
+            if 0 < user_input < 8:
+                main(user_input)
+                break
+            else:
+                print("Input is out of range")
+        except ValueError:
+            print("Input is not integer")
