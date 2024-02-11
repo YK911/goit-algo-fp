@@ -23,53 +23,56 @@ def greedy_algorithm(items, budget):
 
     for item_name, item_data in sorted_items:
         if item_data["cost"] <= remaining_budget:
-            quantity = remaining_budget // item_data["cost"]
-            selected_items[item_name] = quantity
-            remaining_budget -= item_data["cost"] * quantity
-
-    return selected_items
+            selected_items[item_name] = 1
+            remaining_budget -= item_data["cost"]
+    return selected_items, remaining_budget
 
 
 # Helpers for dynamic programmnig method
-def calculate_ratios(items):
-    return {food: items[food]["calories"] / items[food]["cost"] for food in items}
-
-
-def sort_items_by_ratio(items, ratios):
-    return sorted(items.keys(), key=lambda x: ratios[x], reverse=True)
-
-
-def initialize_dp_arrays(budget):
-    return [0] * (budget + 1), [None] * (budget + 1)
-
-
-def fill_dp_arrays(items, sorted_items, budget, dp, prev):
-    for food in sorted_items:
-        cost = items[food]["cost"]
-        calories = items[food]["calories"]
-        for j in range(cost, budget + 1):
-            if dp[j - cost] + calories > dp[j]:
-                dp[j] = dp[j - cost] + calories
-                prev[j] = food
-
-
-def reconstruct_result(items, budget, prev):
-    result = {}
-    current_budget = budget
-    while prev[current_budget] is not None:
-        food = prev[current_budget]
-        result[food] = result.get(food, 0) + 1
-        current_budget -= items[food]["cost"]
-    return result
+def get_ccal(items, cost):
+    for key in items:
+        if items[key]["cost"] == cost:
+            return items[key]["calories"]
 
 
 def dynamic_programming(items, budget):
-    ratios = calculate_ratios(items)
-    sorted_items = sort_items_by_ratio(items, ratios)
-    dp, prev = initialize_dp_arrays(budget)
-    fill_dp_arrays(items, sorted_items, budget, dp, prev)
-    result = reconstruct_result(items, budget, prev)
-    return result
+    cost = [int(items[key]["cost"]) for key in items]
+    sorted_items = sorted(cost)
+    n = len(sorted_items)
+
+    K = [[0 for w in range(budget + 1)] for i in range(n + 1)]
+    K_res = {}
+
+    for i in range(n + 1):
+        for w in range(budget + 1):
+            if i == 0 or w == 0:
+                K[i][w] = 0
+                K_res[(i, w)] = {}
+            elif cost[i - 1] <= w:
+                if (
+                    get_ccal(items, cost[i - 1]) + K[i - 1][w - cost[i - 1]]
+                    < K[i - 1][w]
+                ):
+                    K[i][w] = K[i - 1][w]
+                    K_res[(i, w)] = K_res[(i - 1, w)]
+                else:
+                    K[i][w] = get_ccal(items, cost[i - 1]) + K[i - 1][w - cost[i - 1]]
+                    K_res[(i, w)] = K_res[(i - 1, w - cost[i - 1])] | {
+                        cost[i - 1]: True
+                    }
+
+            else:
+                K[i][w] = K[i - 1][w]
+                K_res[(i, w)] = K_res[(i - 1, w)]
+
+    remaining_budget = budget
+    selected_items = {}
+    for cost in K_res[(n, budget)]:
+        item_name = next(key for key in items if items[key]["cost"] == cost)
+        selected_items[item_name] = 1
+        remaining_budget -= cost
+
+    return selected_items, remaining_budget
 
 
 if __name__ == "__main__":
@@ -81,11 +84,12 @@ if __name__ == "__main__":
         "cola": {"cost": 15, "calories": 220},
         "potato": {"cost": 25, "calories": 350},
     }
-    budget = 1220  # change the budget to check the results
+    budget = 220  # change the budget to check the results
 
-    greedy_res = greedy_algorithm(items, budget)
+    greedy_res, remaining_budget = greedy_algorithm(items, budget)
     print(f"Greedy algorithm set: {greedy_res}")
+    print(f"Remaining budget: {remaining_budget}")
 
-    dp_res = dynamic_programming(items, budget)
-
+    dp_res, remaining_budget = dynamic_programming(items, budget)
     print(f"Dynamic programming set: {dp_res}")
+    print(f"Remaining budget: {remaining_budget}")
